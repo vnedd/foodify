@@ -4,6 +4,7 @@ import { RecipeType } from "@/app/_actions/recipes/type";
 import Image from "@/components/common/image";
 import { MdOutlineAccessTime } from "react-icons/md";
 import { PiChefHat } from "react-icons/pi";
+import { IoEarthOutline } from "react-icons/io5";
 import { DifficulType } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { GoTrash } from "react-icons/go";
@@ -28,7 +29,6 @@ const RecipeItem = ({ item }: Props) => {
   const hour = Math.floor((item.prepTime + item.cookTime) / 60);
   const mins = item.prepTime + item.cookTime - hour * 60;
   const [open, setOpen] = useState(false);
-  const router = useRouter();
   const { toast } = useToast();
 
   const { execute: deleteExecute, isExecuting: deleteExecuting } = useAction(
@@ -56,36 +56,40 @@ const RecipeItem = ({ item }: Props) => {
         onConfirm={() => handleDelete(item.id)}
         loading={deleteExecuting}
       />
-      <div className="shadow-lg flex gap-2 p-3 rounded-lg">
-        <div className="relative aspect-5/6 overflow-hidden w-1/3 rounded-lg group shrink-0">
+      <div className="shadow-lg flex gap-2 p-3 rounded-lg dark:border">
+        <div className="relative overflow-hidden lg:w-1/3 md:w-1/2 w-1/3 rounded-lg group  shrink-0 grow">
           <Image
             src={item.image}
-            className={
-              "aspect-5/6 object-cover group-hover:scale-125 transition"
-            }
+            className={"object-cover group-hover:scale-125 transition shrink-0"}
             alt={item.title}
             fill
           />
         </div>
         <div className="space-y-4 flex flex-col">
           <div className="p-2 space-y-2">
-            <h3 className="font-semibold md:text-base text-sm">{item.title}</h3>
-            <p className="text-muted-foreground line-clamp-3 text-sm">
+            <h3 className="font-semibold md:text-base text-sm line-clamp-1">
+              {item.title}
+            </h3>
+            <p className="text-muted-foreground line-clamp-2 text-sm">
               {item.description}
             </p>
           </div>
-          <div className="flex flex-wrap md:flex-nowrap items-center gap-4">
-            <p className="flex text-muted-foreground text-sm items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <p className="flex text-muted-foreground text-sm items-center space-x-2 text-nowrap">
               <MdOutlineAccessTime className="mr-1 w-4 h-4" />
               {hour > 0 && `${hour} hour${hour > 1 ? "s" : ""}`}{" "}
               {mins > 0 && `${mins} min${mins > 1 ? "s" : ""}`}
             </p>
-            <p className="flex text-muted-foreground text-sm items-center space-x-2">
+            <p className="flex text-muted-foreground text-sm items-center space-x-2 text-nowrap">
               <PiChefHat className="mr-1 w-4 h-4" />
               {difficultLevel[item.difficulty]}
             </p>
+            <p className="flex text-muted-foreground text-sm items-center space-x-2 text-nowrap">
+              <IoEarthOutline className="mr-1 w-4 h-4" />
+              {item.cuisine.name}
+            </p>
           </div>
-          <div className="flex items-center mt-auto justify-end gap-2">
+          <div className="flex items-center justify-end mt-auto gap-2">
             <Button
               className=""
               variant="destructive"

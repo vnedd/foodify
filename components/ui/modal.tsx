@@ -34,7 +34,10 @@ const Modal: React.FC<ModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onChange}>
       <DialogContent
-        className={cn("sm:max-w-[425px] max-w-[90%] rounded-md", className)}
+        className={cn(
+          "sm:max-w-[500px] max-w-[90%] w-full rounded-md pt-10 mt-5",
+          className
+        )}
       >
         {title && description && (
           <DialogHeader className="text-left">

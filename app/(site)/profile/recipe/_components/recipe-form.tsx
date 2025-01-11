@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ReactSortable } from "react-sortablejs";
-import FileUploadDropzone from "@/components/common/upload-dropzone";
-import Image from "next/image";
+import { BsLightning } from "react-icons/bs";
 import { Category, Cuisine, DifficulType } from "@prisma/client";
 import {
   Select,
@@ -28,6 +27,7 @@ import { RecipeType } from "@/app/_actions/recipes/type";
 import { Card, CardContent } from "@/components/ui/card";
 import { FiPlus } from "react-icons/fi";
 import UploadWidget from "@/components/common/upload-widget";
+import Modal from "@/components/ui/modal";
 
 type TStepType = {
   id: number;
@@ -65,6 +65,11 @@ export default function RecipeForm({
   categories,
   initialData,
 }: RecipeFormProps) {
+  const [open, setOpen] = useState<boolean>(false);
+  const [ingredientText, setIngredientText] = useState<string>(
+    initialData?.ingredients.map((item) => item.label).join("\n") || ""
+  );
+
   const [ingredients, setIngredients] = useState<TIngredientType[]>(
     initialData?.ingredients.map((item) => ({
       id: item.order,
@@ -273,357 +278,417 @@ export default function RecipeForm({
     return <p className="text-red-500 text-sm mt-1 error-message">{message}</p>;
   };
 
+  const handleQuickAddIngredient = () => {
+    if (ingredientText.trim()) {
+      const newIngredients: TIngredientType[] = ingredientText
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line !== "")
+        .map((name, index) => ({ id: index, label: name }));
+
+      setIngredients(newIngredients);
+      setOpen(false);
+      setIngredientText("");
+    }
+  };
+
   return (
-    <Card className="max-w-3xl mx-auto p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <FcPlus className="h-6 w-6" />
-        <h1 className="text-2xl font-bold">Add a Recipe</h1>
-      </div>
-      <p className="text-muted-foreground mb-8 text-sm">
-        Uploading personal recipes is easy! Add yours to your favorites, share
-        with friends, family, or the AllRecipes community.
-      </p>
-      <ActionMessage result={result} />
-      <form className="space-y-8" onSubmit={handleSubmit}>
-        <div className="space-y-2">
-          <Label htmlFor="title">Recipe Title</Label>
-          <Input
-            id="title"
-            placeholder="Give your recipe a title"
-            className={`max-w-xl ${errors.title ? "border-red-500" : ""}`}
-            value={title}
-            disabled={addExecuting || updateExecuting}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <ErrorMessage message={errors.title} />
+    <>
+      <Modal isOpen={open} onClose={() => setOpen(false)}>
+        <div className="space-y-2 mb-4">
+          <h3 className="font-semibold text-xl">Add multiple ingredients</h3>
+          <p className="text-sm text-muted-foreground">
+            Paste your ingredient list here. Add one ingredient per line.
+            Include the quantity (i.e. cups, tablespoons) and any special
+            preparation (i.e. sifted, softened, chopped).
+          </p>
         </div>
+        <Textarea
+          placeholder="Separate Ingredients with line breaks"
+          value={ingredientText}
+          className="h-72"
+          onChange={(e) => setIngredientText(e.target.value)}
+        />
+        <div className="flex justify-end gap-2 mt-4">
+          <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            variant="default"
+            onClick={handleQuickAddIngredient}
+          >
+            Quick Add
+          </Button>
+        </div>
+      </Modal>
+      <Card className="max-w-3xl mx-auto p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <FcPlus className="h-6 w-6" />
+          <h1 className="text-2xl font-bold">Add a Recipe</h1>
+        </div>
+        <p className="text-muted-foreground mb-8 text-sm">
+          Uploading personal recipes is easy! Add yours to your favorites, share
+          with friends, family, or the AllRecipes community.
+        </p>
+        <ActionMessage result={result} />
+        <form className="space-y-8" onSubmit={handleSubmit}>
+          <div className="space-y-2">
+            <Label htmlFor="title">Recipe Title</Label>
+            <Input
+              id="title"
+              placeholder="Give your recipe a title"
+              className={`max-w-xl ${errors.title ? "border-red-500" : ""}`}
+              value={title}
+              disabled={addExecuting || updateExecuting}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <ErrorMessage message={errors.title} />
+          </div>
 
-        <div className="space-y-2">
-          <Label>Photo</Label>
-          <div className="flex space-y-2 flex-col">
-            <div className="md:w-1/2 w-full">
-              <UploadWidget
-                value={image}
-                disabled={addExecuting || updateExecuting ? true : false}
-                onChange={(url) => {
-                  if (url) setImage(url);
-                }}
-                onRemove={() => setImage("")}
-              />
+          <div className="space-y-2">
+            <Label>Photo</Label>
+            <div className="flex space-y-2 flex-col">
+              <div className="md:w-1/2 w-full">
+                <UploadWidget
+                  value={image}
+                  disabled={addExecuting || updateExecuting ? true : false}
+                  onChange={(url) => {
+                    if (url) setImage(url);
+                  }}
+                  onRemove={() => setImage("")}
+                />
+              </div>
+              <ErrorMessage message={errors.image} />
             </div>
-            <ErrorMessage message={errors.image} />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            disabled={addExecuting || updateExecuting}
-            id="description"
-            placeholder="Share the story behind your recipe and what makes it special."
-            className={`min-h-[100px] ${
-              errors.description ? "border-red-500" : ""
-            }`}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <ErrorMessage message={errors.description} />
-        </div>
-
-        <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
-          <div className="space-y-2">
-            <Label>Cuisine</Label>
-            <p className="text-sm text-muted-foreground">
-              Select the cuisine for this recipe.
-            </p>
-            <Select
-              disabled={addExecuting || updateExecuting}
-              value={initialData?.cuisineId || cuisine}
-              onValueChange={(value) => setCuisine(value)}
-            >
-              <SelectTrigger className={errors.cuisine ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select Cuisine" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {cuisines.map((cuisine) => (
-                    <SelectItem
-                      key={cuisine.id}
-                      value={cuisine.id}
-                      className="cursor-pointer"
-                    >
-                      {cuisine.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <ErrorMessage message={errors.cuisine} />
           </div>
 
           <div className="space-y-2">
-            <Label>Categories</Label>
-            <p className="text-sm text-muted-foreground">
-              Select one or more categories for this recipe.
-            </p>
-            <Select
-              onValueChange={(value) => setCategory(value)}
+            <Label htmlFor="description">Description</Label>
+            <Textarea
               disabled={addExecuting || updateExecuting}
-              value={initialData?.categoryId || category}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {categories.map((category) => (
-                    <SelectItem
-                      key={category.id}
-                      value={category.id}
-                      className="cursor-pointer"
-                    >
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <ErrorMessage message={errors.category} />
+              id="description"
+              placeholder="Share the story behind your recipe and what makes it special."
+              className={`min-h-[100px] ${
+                errors.description ? "border-red-500" : ""
+              }`}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            <ErrorMessage message={errors.description} />
           </div>
-        </div>
 
-        <div className="space-y-4">
-          <Label>Additional information</Label>
           <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="prepTime">Prep Time (minutes)</Label>
-              <Input
-                disabled={addExecuting || updateExecuting}
-                id="prepTime"
-                type="number"
-                placeholder="e.g. 15"
-                value={prepTime}
-                onChange={(e) => setPrepTime(Number(e.target.value))}
-                className={"max-w-xl"}
-              />
-              <ErrorMessage message={errors.prepTime} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cookTime">Cook Time (minutes)</Label>
-              <Input
-                disabled={addExecuting || updateExecuting}
-                id="cookTime"
-                type="number"
-                placeholder="e.g. 30"
-                value={cookTime}
-                onChange={(e) => setCookTime(Number(e.target.value))}
-                className="max-w-xl"
-              />
-              <ErrorMessage message={errors.cookTime} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="servings">Servings</Label>
-              <Input
-                disabled={addExecuting || updateExecuting}
-                id="servings"
-                type="number"
-                placeholder="e.g. 4"
-                value={servings}
-                onChange={(e) => setServings(Number(e.target.value))}
-                className="max-w-xl"
-              />
-              <ErrorMessage message={errors.servings} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="difficulty">Difficulty</Label>
+              <Label>Cuisine</Label>
+              <p className="text-sm text-muted-foreground">
+                Select the cuisine for this recipe.
+              </p>
               <Select
                 disabled={addExecuting || updateExecuting}
-                value={initialData?.difficulty || difficulty}
-                onValueChange={(value) => {
-                  const type = value as DifficulType;
-                  setDifficulty(type);
-                }}
+                value={initialData?.cuisineId || cuisine}
+                onValueChange={(value) => setCuisine(value)}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Difficulty" />
+                <SelectTrigger
+                  className={errors.cuisine ? "border-red-500" : ""}
+                >
+                  <SelectValue placeholder="Select Cuisine" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem
-                      value={DifficulType.EASY}
-                      className="cursor-pointer"
-                    >
-                      {DifficulType.EASY}
-                    </SelectItem>
-                    <SelectItem
-                      value={DifficulType.MEDIUM}
-                      className="cursor-pointer"
-                    >
-                      {DifficulType.MEDIUM}
-                    </SelectItem>
-                    <SelectItem
-                      value={DifficulType.DIFFICULT}
-                      className="cursor-pointer"
-                    >
-                      {DifficulType.DIFFICULT}
-                    </SelectItem>
+                    {cuisines.map((cuisine) => (
+                      <SelectItem
+                        key={cuisine.id}
+                        value={cuisine.id}
+                        className="cursor-pointer"
+                      >
+                        {cuisine.name}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <ErrorMessage message={errors.difficulty} />
+              <ErrorMessage message={errors.cuisine} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Categories</Label>
+              <p className="text-sm text-muted-foreground">
+                Select one or more categories for this recipe.
+              </p>
+              <Select
+                onValueChange={(value) => setCategory(value)}
+                disabled={addExecuting || updateExecuting}
+                value={initialData?.categoryId || category}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {categories.map((category) => (
+                      <SelectItem
+                        key={category.id}
+                        value={category.id}
+                        className="cursor-pointer"
+                      >
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <ErrorMessage message={errors.category} />
             </div>
           </div>
-        </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Ingredients</Label>
+          <div className="space-y-4">
+            <Label>Additional information</Label>
+            <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="prepTime">Prep Time (minutes)</Label>
+                <Input
+                  disabled={addExecuting || updateExecuting}
+                  id="prepTime"
+                  type="number"
+                  placeholder="e.g. 15"
+                  value={prepTime}
+                  onChange={(e) => setPrepTime(Number(e.target.value))}
+                  className={"max-w-xl"}
+                />
+                <ErrorMessage message={errors.prepTime} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cookTime">Cook Time (minutes)</Label>
+                <Input
+                  disabled={addExecuting || updateExecuting}
+                  id="cookTime"
+                  type="number"
+                  placeholder="e.g. 30"
+                  value={cookTime}
+                  onChange={(e) => setCookTime(Number(e.target.value))}
+                  className="max-w-xl"
+                />
+                <ErrorMessage message={errors.cookTime} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="servings">Servings</Label>
+                <Input
+                  disabled={addExecuting || updateExecuting}
+                  id="servings"
+                  type="number"
+                  placeholder="e.g. 4"
+                  value={servings}
+                  onChange={(e) => setServings(Number(e.target.value))}
+                  className="max-w-xl"
+                />
+                <ErrorMessage message={errors.servings} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="difficulty">Difficulty</Label>
+                <Select
+                  disabled={addExecuting || updateExecuting}
+                  value={initialData?.difficulty || difficulty}
+                  onValueChange={(value) => {
+                    const type = value as DifficulType;
+                    setDifficulty(type);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem
+                        value={DifficulType.EASY}
+                        className="cursor-pointer"
+                      >
+                        {DifficulType.EASY}
+                      </SelectItem>
+                      <SelectItem
+                        value={DifficulType.MEDIUM}
+                        className="cursor-pointer"
+                      >
+                        {DifficulType.MEDIUM}
+                      </SelectItem>
+                      <SelectItem
+                        value={DifficulType.DIFFICULT}
+                        className="cursor-pointer"
+                      >
+                        {DifficulType.DIFFICULT}
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <ErrorMessage message={errors.difficulty} />
+              </div>
+            </div>
           </div>
-          <ErrorMessage message={errors.ingredients} />
-          <p className="text-sm text-muted-foreground">
-            Enter one ingredient per line. Include the quantity (i.e. cups,
-            tablespoons) and any special preparation (i.e. sifted, softened,
-            chopped). Use optional headers to organize the different parts of
-            the recipe (i.e. Cake, Frosting, Dressing).
-          </p>
-          <div className="space-y-2">
-            <ReactSortable
-              disabled={addExecuting || updateExecuting}
-              list={ingredients}
-              setList={setIngredients}
-              className="space-y-3"
-            >
-              {ingredients.map((ingredient, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <GripVertical className="h-5 w-5 text-muted-foreground cursor-pointer" />
-                  <Input
-                    disabled={addExecuting || updateExecuting}
-                    placeholder="e.g. 2 cups flour, sifted"
-                    value={ingredient.label}
-                    onChange={(e) => {
-                      const newIngredients = [...ingredients];
-                      newIngredients[index].label = e.target.value;
-                      setIngredients(newIngredients);
-                    }}
-                  />
-                  <Button
-                    disabled={addExecuting || updateExecuting}
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeIngredient(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </ReactSortable>
-          </div>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={addExecuting || updateExecuting}
-              onClick={addIngredient}
-              className="text-xs"
-            >
-              <FiPlus /> Add Ingredient
-            </Button>
-          </div>
-        </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Directions</Label>
-          </div>
-          <ErrorMessage message={errors.steps} />
-          <p className="text-sm text-muted-foreground">
-            Explain how to make your recipe, including oven temperatures, baking
-            or cooking times, and pan sizes, etc. Use optional headers to
-            organize the different parts of the recipe (i.e. Prep, Bake,
-            Decorate).
-          </p>
-          <div className="space-y-2">
-            <ReactSortable
-              disabled={addExecuting || updateExecuting}
-              list={steps}
-              setList={setSteps}
-              className="space-y-6"
-            >
-              {steps.map((step, index) => (
-                <div key={index} className="flex flex-col gap-4">
-                  <Label className="text-sm text-muted-foreground ml-6">
-                    Step {index + 1}
-                  </Label>
-                  <div className="flex items-start gap-4">
-                    <GripVertical className="h-5 w-5 text-muted-foreground cursor-pointer mt-2" />
-                    <div className="flex-1 space-y-4 ">
-                      <Input
-                        disabled={addExecuting || updateExecuting}
-                        placeholder="e.g. Preheat oven to 350 degrees F..."
-                        value={step.label}
-                        onChange={(e) => {
-                          const newSteps = [...steps];
-                          newSteps[index].label = e.target.value;
-                          setSteps(newSteps);
-                        }}
-                      />
-                      <div className="w-24 h-24">
-                        <UploadWidget
-                          value={step.image || ""}
-                          disabled={addExecuting || updateExecuting}
-                          onChange={(url) => {
-                            if (url) {
-                              const newSteps = [...steps];
-                              newSteps[index].image = url;
-                              setSteps(newSteps);
-                            }
-                          }}
-                          onRemove={() => {
-                            const newSteps = [...steps];
-                            newSteps[index].image = "";
-                            setSteps(newSteps);
-                          }}
-                        />
-                      </div>
-                    </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>Ingredients</Label>
+            </div>
+            <ErrorMessage message={errors.ingredients} />
+            <p className="text-sm text-muted-foreground">
+              Enter one ingredient per line. Include the quantity (i.e. cups,
+              tablespoons) and any special preparation (i.e. sifted, softened,
+              chopped). Use optional headers to organize the different parts of
+              the recipe (i.e. Cake, Frosting, Dressing).
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                onClick={() => setOpen(true)}
+                type="button"
+                variant="outline"
+                size="sm"
+              >
+                <BsLightning />
+                Quick add
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <ReactSortable
+                disabled={addExecuting || updateExecuting}
+                list={ingredients}
+                setList={setIngredients}
+                className="space-y-3"
+              >
+                {ingredients.map((ingredient, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <GripVertical className="h-5 w-5 text-muted-foreground cursor-pointer" />
+                    <Input
+                      disabled={addExecuting || updateExecuting}
+                      placeholder="e.g. 2 cups flour, sifted"
+                      value={ingredient.label}
+                      onChange={(e) => {
+                        const newIngredients = [...ingredients];
+                        newIngredients[index].label = e.target.value;
+                        setIngredients(newIngredients);
+                      }}
+                    />
                     <Button
                       disabled={addExecuting || updateExecuting}
                       type="button"
                       variant="ghost"
                       size="icon"
-                      onClick={() => removeStep(index)}
+                      onClick={() => removeIngredient(index)}
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-              ))}
-            </ReactSortable>
+                ))}
+              </ReactSortable>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={addExecuting || updateExecuting}
+                onClick={addIngredient}
+                className="text-xs"
+              >
+                <FiPlus /> Add Ingredient
+              </Button>
+            </div>
           </div>
-          <div className="flex justify-end">
-            <Button
-              disabled={addExecuting || updateExecuting}
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addStep}
-              className="text-xs"
-            >
-              <FiPlus /> Add Step
-            </Button>
-          </div>
-        </div>
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={addExecuting || updateExecuting}
-        >
-          {addExecuting || updateExecuting ? "Submitting..." : "Submit Recipe"}
-        </Button>
-      </form>
-    </Card>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>Directions</Label>
+            </div>
+            <ErrorMessage message={errors.steps} />
+            <p className="text-sm text-muted-foreground">
+              Explain how to make your recipe, including oven temperatures,
+              baking or cooking times, and pan sizes, etc. Use optional headers
+              to organize the different parts of the recipe (i.e. Prep, Bake,
+              Decorate).
+            </p>
+            <div className="space-y-2">
+              <ReactSortable
+                disabled={addExecuting || updateExecuting}
+                list={steps}
+                setList={setSteps}
+                className="space-y-6"
+              >
+                {steps.map((step, index) => (
+                  <div key={index} className="flex flex-col gap-4">
+                    <Label className="text-sm text-muted-foreground ml-6">
+                      Step {index + 1}
+                    </Label>
+                    <div className="flex items-start gap-4">
+                      <GripVertical className="h-5 w-5 text-muted-foreground cursor-pointer mt-2" />
+                      <div className="flex-1 space-y-4 ">
+                        <Input
+                          disabled={addExecuting || updateExecuting}
+                          placeholder="e.g. Preheat oven to 350 degrees F..."
+                          value={step.label}
+                          onChange={(e) => {
+                            const newSteps = [...steps];
+                            newSteps[index].label = e.target.value;
+                            setSteps(newSteps);
+                          }}
+                        />
+                        <div className="w-24 h-24">
+                          <UploadWidget
+                            value={step.image || ""}
+                            disabled={addExecuting || updateExecuting}
+                            onChange={(url) => {
+                              if (url) {
+                                const newSteps = [...steps];
+                                newSteps[index].image = url;
+                                setSteps(newSteps);
+                              }
+                            }}
+                            onRemove={() => {
+                              const newSteps = [...steps];
+                              newSteps[index].image = "";
+                              setSteps(newSteps);
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        disabled={addExecuting || updateExecuting}
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeStep(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </ReactSortable>
+            </div>
+            <div className="flex justify-end">
+              <Button
+                disabled={addExecuting || updateExecuting}
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addStep}
+                className="text-xs"
+              >
+                <FiPlus /> Add Step
+              </Button>
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={addExecuting || updateExecuting}
+          >
+            {addExecuting || updateExecuting
+              ? "Submitting..."
+              : "Submit Recipe"}
+          </Button>
+        </form>
+      </Card>
+    </>
   );
 }

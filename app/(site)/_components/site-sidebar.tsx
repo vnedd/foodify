@@ -9,8 +9,6 @@ import { PiBowlFood } from "react-icons/pi";
 import { BiCategory } from "react-icons/bi";
 import { BiMessageSquareAdd } from "react-icons/bi";
 import { LuEarth } from "react-icons/lu";
-import { CgList } from "react-icons/cg";
-import { RxDashboard } from "react-icons/rx";
 import {
   Sidebar,
   SidebarContent,

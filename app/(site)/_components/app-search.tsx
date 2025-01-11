@@ -13,7 +13,7 @@ const AppSearch = () => {
             className="pr-11"
           />
         </div>
-        <Button className="absolute right-0 w-10 h-10" size="icon">
+        <Button className="absolute right-0" size="icon">
           <BiSearch />
         </Button>
       </div>

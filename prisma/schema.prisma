@@ -1,0 +1,185 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+}
+
+enum DifficulType {
+  EASY
+  MEDIUM
+  DIFFICULT
+}
+
+model User {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?         @unique
+  password      String?
+  emailVerified DateTime?
+  image         String?
+  bio           String?
+  accounts      Account[]
+  sessions      Session[]
+  Authenticator Authenticator[]
+  role          UserRole        @default(CUSTOMER)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  recipes      Recipe[]
+  reviews      Review[]
+  savedRecipes String[] @db.ObjectId
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Authenticator {
+  credentialID         String  @id @map("_id")
+  userId               String  @db.ObjectId
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, credentialID])
+}
+
+// Main models
+model Recipe {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  ingredients Ingredient[]
+  steps       Step[]
+  prepTime    Int
+  cookTime    Int
+  servings    Int
+  difficulty  DifficulType
+  image       String
+
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   String   @db.ObjectId
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String   @db.ObjectId
+  reviews    Review[]
+  cuisine    Cuisine  @relation(fields: [cuisineId], references: [id])
+  cuisineId  String   @db.ObjectId
+
+  isPublished Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  viewCount   Int      @default(0)
+  likeCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  slug        String   @unique
+  description String
+  image       String
+  recipeIds   String[] @db.ObjectId
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  Recipe      Recipe[]
+}
+
+model Ingredient {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  label     String   @unique
+  order     Int
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+  recipeId  String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Step {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  label     String   @unique
+  order     Int
+  image     String?
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+  recipeId  String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Cuisine {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  country     String
+  region      String?
+  description String?
+  recipes     Recipe[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Review {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating      Int // 1-5
+  comment     String?
+  images      String[] // URLs to review images
+  recipe      Recipe   @relation(fields: [recipeId], references: [id])
+  recipeId    String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String   @db.ObjectId
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

@@ -13,7 +13,7 @@ export interface IRecipeQueryParams {
   offset?: number;
   limit?: number;
   title?: string;
-  categoryId?: string;
+  categorySlug?: string;
   cuisineId?: string;
 }
 
@@ -41,7 +41,7 @@ export const getRecipes = async () => {
 
 export const getInfinityRecipes = async (params: IRecipeQueryParams) => {
   try {
-    const { offset, limit, title, categoryId, cuisineId } = params;
+    const { offset, limit, title, categorySlug, cuisineId } = params;
 
     const recipes = await prisma.recipe.findMany({
       orderBy: {
@@ -62,7 +62,14 @@ export const getInfinityRecipes = async (params: IRecipeQueryParams) => {
             mode: "insensitive",
           },
         }),
-        ...(categoryId && { categoryId }),
+        ...(categorySlug && {
+          category: {
+            slug: {
+              equals: categorySlug,
+              mode: "insensitive",
+            },
+          },
+        }),
         ...(cuisineId && { cuisineId }),
       },
       skip: offset,

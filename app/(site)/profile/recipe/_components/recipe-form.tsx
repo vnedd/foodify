@@ -325,7 +325,9 @@ export default function RecipeForm({
       <Card className="max-w-3xl mx-auto p-6">
         <div className="flex items-center gap-2 mb-4">
           <FcPlus className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">Add a Recipe</h1>
+          <h1 className="text-2xl font-bold">
+            {initialData ? "Update" : "Add"} a Recipe
+          </h1>
         </div>
         <p className="text-muted-foreground mb-8 text-sm">
           Uploading personal recipes is easy! Add yours to your favorites, share

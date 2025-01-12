@@ -26,6 +26,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -82,19 +83,10 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem className="cursor-pointer">
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem className="cursor-pointer">
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <CreditCard />
-                Billing
+                <Link href={`/profile`} className="flex gap-2 items-center">
+                  <BadgeCheck />
+                  Account
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Bell />

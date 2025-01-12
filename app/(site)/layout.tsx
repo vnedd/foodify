@@ -11,12 +11,15 @@ import Link from "next/link";
 import { RiAddLine } from "react-icons/ri";
 import AppSearch from "./_components/app-search";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const { data: session } = useSession();
+  const pathname = usePathname();
+  const isSearchPage = pathname === "/recipes";
   return (
     <SidebarProvider>
       <SiteSidebar />
@@ -25,7 +28,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="flex items-center gap-2 px-4 justify-between ">
             <SidebarTrigger className="-ml-1" />
           </div>
-          <AppSearch />
+          {!isSearchPage && <AppSearch />}
           <div className="ml-auto flex items-center space-x-2">
             <SwitchTheme />
             {session?.user ? (

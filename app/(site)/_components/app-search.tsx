@@ -1,7 +1,10 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+"use client";
 import React from "react";
 import { BiSearch } from "react-icons/bi";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 const AppSearch = () => {
   return (
     <section className="w-full">

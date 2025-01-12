@@ -6,7 +6,7 @@ import { getInfinityRecipes } from "@/app/_actions/recipes";
 import { RecipeType } from "@/app/_actions/recipes/type";
 import RecipeItem from "./recipe-item";
 import RecipeCategoryFilter from "./recipe-category-filter";
-import { Category } from "@prisma/client";
+import { Category, DifficulType } from "@prisma/client";
 import { useSearchParams } from "next/navigation";
 import CardSkeletons from "@/components/common/card-skeletons";
 export const RECIPES_PER_PAGE = 10;
@@ -45,14 +45,12 @@ const RecipeList = ({ initialData, categories }: RecipeListProps) => {
     }
   };
 
-  // Reset state when category changes
   useEffect(() => {
     setRecipes(initialData);
     setOffset(0);
     setHasMoreData(true);
   }, [categoryParam, initialData]);
 
-  // Handle infinite scroll
   useEffect(() => {
     if (isInView && hasMoreData) {
       loadMoreRecipes({
@@ -71,9 +69,7 @@ const RecipeList = ({ initialData, categories }: RecipeListProps) => {
       </div>
       <div className="text-center text-muted-foreground mt-5 text-sm">
         {hasMoreData ? (
-          <div ref={scrollTrigger}>
-            <CardSkeletons className=" lg:grid-cols-2 md:gap-6 gap:4 md:grid-cols-2 grid-cols-2" />
-          </div>
+          <div ref={scrollTrigger}>Loading...</div>
         ) : (
           <p className="text-muted-foreground text-sm">
             No more recipes to load

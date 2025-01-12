@@ -2,7 +2,6 @@
 import React from "react";
 import { Category } from "@prisma/client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import qs from "query-string";
 
@@ -30,7 +29,7 @@ const RecipeCategoryFilter = ({ categories }: Props) => {
   };
 
   return (
-    <div className="flex max-w-full overflow-x-auto text-base space-x-3">
+    <div className="flex w-full overflow-x-auto text-base space-x-3 mx-auto">
       <Button
         variant={!currentCategory ? "default" : "outline"}
         onClick={() => handleSelect(null)}

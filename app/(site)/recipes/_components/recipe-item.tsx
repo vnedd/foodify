@@ -10,6 +10,7 @@ import RecipeAuthor from "./recipe-author";
 import { useSession } from "next-auth/react";
 import RecipeAuthorActions from "./recipe-author-actions";
 import RecipeActions from "./recipe-actions";
+import Link from "next/link";
 
 interface Props {
   item: RecipeType;
@@ -43,9 +44,12 @@ const RecipeItem = ({ item }: Props) => {
       </div>
       <div className="flex flex-col  gap-2  ">
         <div className="space-y-1">
-          <h3 className="font-semibold md:text-base text-sm line-clamp-1">
+          <Link
+            href={`/recipes/${item.id}`}
+            className="font-semibold md:text-base text-sm line-clamp-1"
+          >
             {item.title}
-          </h3>
+          </Link>
           <p className="text-muted-foreground line-clamp-2 text-sm">
             {item.description}
           </p>
@@ -66,7 +70,7 @@ const RecipeItem = ({ item }: Props) => {
           </p>
         </div>
       </div>
-      <RecipeActions />
+      <RecipeActions recipe={item} />
     </div>
   );
 };

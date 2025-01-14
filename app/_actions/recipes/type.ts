@@ -15,4 +15,10 @@ export type RecipeType = Recipe & {
   ingredients: Ingredient[];
   steps: Step[];
   reviews: Review[];
+  isLiked?: boolean;
+  isSaved?: boolean;
 };
+
+export interface LikeActionResult {
+  success: boolean;
+}

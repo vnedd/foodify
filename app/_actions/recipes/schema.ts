@@ -32,7 +32,7 @@ export const recipeSchema = z.object({
     .min(1, "At least one step is required"),
 });
 
-export const deleteRecipeSchema = z.object({
+export const recipeIdSchema = z.object({
   id: z.string(),
 });
 

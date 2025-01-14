@@ -1,5 +1,5 @@
 import React from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { IoTimeOutline } from "react-icons/io5";
 import { HiOutlineUserGroup } from "react-icons/hi2";
 import { PiChefHat } from "react-icons/pi";
@@ -27,7 +27,7 @@ const RecipePage = async ({ params }: RecipePageProps) => {
   const recipe = await getRecipeById(resolvedParams.recipeId);
 
   if (!recipe) {
-    notFound();
+    redirect("/");
   }
 
   const cookTimehour = Math.floor(recipe.cookTime / 60);

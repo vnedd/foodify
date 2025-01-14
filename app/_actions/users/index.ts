@@ -69,7 +69,10 @@ export const registerAction = actionClient
 
 export const getUserById = async (id: string) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id } });
+    const user = await prisma.user.findUnique({ where: { id }, include: {
+
+      
+    } });
 
     return user;
   } catch {

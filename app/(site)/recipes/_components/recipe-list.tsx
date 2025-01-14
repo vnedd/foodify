@@ -6,10 +6,11 @@ import { getInfinityRecipes } from "@/app/_actions/recipes";
 import { RecipeType } from "@/app/_actions/recipes/type";
 import RecipeItem from "./recipe-item";
 import RecipeCategoryFilter from "./recipe-category-filter";
-import { Category, DifficulType } from "@prisma/client";
+import { Category } from "@prisma/client";
 import { useSearchParams } from "next/navigation";
-import CardSkeletons from "@/components/common/card-skeletons";
-export const RECIPES_PER_PAGE = 10;
+import { CgSpinnerTwo } from "react-icons/cg";
+
+export const RECIPES_PER_PAGE = 6;
 
 type RecipeListProps = {
   initialData: RecipeType[];
@@ -20,6 +21,7 @@ const RecipeList = ({ initialData, categories }: RecipeListProps) => {
   const [offset, setOffset] = useState<number>(0);
   const [recipes, setRecipes] = useState<RecipeType[]>(initialData);
   const [hasMoreData, setHasMoreData] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [scrollTrigger, isInView] = useInView();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
@@ -28,20 +30,25 @@ const RecipeList = ({ initialData, categories }: RecipeListProps) => {
     category?: string;
     title?: string;
   }) => {
-    if (hasMoreData) {
-      const apiRecipes = await getInfinityRecipes({
-        offset,
-        limit: RECIPES_PER_PAGE,
-        categorySlug: query.category,
-      });
+    if (hasMoreData && !isLoading) {
+      try {
+        setIsLoading(true);
+        const apiRecipes = await getInfinityRecipes({
+          offset,
+          limit: RECIPES_PER_PAGE,
+          categorySlug: query.category,
+        });
 
-      if (apiRecipes.length === 0) {
-        setHasMoreData(false);
-        return;
+        if (apiRecipes.length === 0) {
+          setHasMoreData(false);
+          return;
+        }
+
+        setRecipes((prevRecipes) => [...prevRecipes, ...apiRecipes]);
+        setOffset((prevOffset) => prevOffset + RECIPES_PER_PAGE);
+      } finally {
+        setIsLoading(false);
       }
-
-      setRecipes((prevRecipes) => [...prevRecipes, ...apiRecipes]);
-      setOffset((prevOffset) => prevOffset + RECIPES_PER_PAGE);
     }
   };
 
@@ -49,6 +56,7 @@ const RecipeList = ({ initialData, categories }: RecipeListProps) => {
     setRecipes(initialData);
     setOffset(0);
     setHasMoreData(true);
+    setIsLoading(false);
   }, [categoryParam, initialData]);
 
   useEffect(() => {
@@ -69,7 +77,14 @@ const RecipeList = ({ initialData, categories }: RecipeListProps) => {
       </div>
       <div className="text-center text-muted-foreground mt-5 text-sm">
         {hasMoreData ? (
-          <div ref={scrollTrigger}>Loading...</div>
+          <div
+            ref={scrollTrigger}
+            className="p-8 flex items-center justify-center"
+          >
+            {isLoading && (
+              <CgSpinnerTwo className="animate-spin h-8 w-8 mx-auto text-primary" />
+            )}
+          </div>
         ) : (
           <p className="text-muted-foreground text-sm">
             No more recipes to load

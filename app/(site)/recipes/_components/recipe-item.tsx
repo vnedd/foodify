@@ -9,8 +9,10 @@ import { DifficulType } from "@prisma/client";
 import RecipeAuthor from "./recipe-author";
 import { useSession } from "next-auth/react";
 import RecipeAuthorActions from "./recipe-author-actions";
-import RecipeActions from "./recipe-actions";
 import Link from "next/link";
+import LikeButton from "./like-button";
+import { LuMessageSquare } from "react-icons/lu";
+import SavedButton from "./saved-button";
 
 interface Props {
   item: RecipeType;
@@ -24,6 +26,7 @@ const difficultLevel: Record<DifficulType, string> = {
 
 const RecipeItem = ({ item }: Props) => {
   const { data: session } = useSession();
+
   const isAuthor = session?.user.id === item.authorId;
   const hour = Math.floor((item.prepTime + item.cookTime) / 60);
   const mins = item.prepTime + item.cookTime - hour * 60;
@@ -70,7 +73,28 @@ const RecipeItem = ({ item }: Props) => {
           </p>
         </div>
       </div>
-      <RecipeActions recipe={item} />
+      <div className="border-t pt-2 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <LikeButton
+            recipeId={item.id}
+            initialLikeCount={item.likeCount}
+            initialLikeState={Boolean(item.isLiked)}
+          />
+          <div
+            className={
+              "flex items-center space-x-1 text-xs text-muted-foreground"
+            }
+            role="button"
+          >
+            <LuMessageSquare className="w-4 h-4" />
+            <p className=" select-none">25 comments</p>
+          </div>
+        </div>
+        <SavedButton
+          recipeId={item.id}
+          initialSavedState={Boolean(item.isSaved)}
+        />
+      </div>
     </div>
   );
 };

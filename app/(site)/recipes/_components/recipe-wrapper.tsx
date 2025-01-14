@@ -9,6 +9,7 @@ const RecipeWrapper = async () => {
     limit: RECIPES_PER_PAGE,
   });
   const categories = await getCategories();
+
   return <RecipeList initialData={initialRecipes} categories={categories} />;
 };
 

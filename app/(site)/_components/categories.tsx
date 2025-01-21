@@ -8,7 +8,7 @@ const Categories = async () => {
   return (
     <div className="space-y-4 w-full">
       <h3 className="font-semibold text-xl">Today’s popular categories</h3>
-      <div className="grid md:grid-cols-4 grid-cols-2 md:gap-6 gap-4 w-full">
+      <div className="grid lg:grid-cols-6 md:grid-cols-4 grid-cols-3 md:gap-6 gap-4 w-full">
         {categories.map((cate) => (
           <CategoryCard category={cate} key={cate.id} />
         ))}

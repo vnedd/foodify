@@ -13,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { format } from "date-fns";
 
 interface Props {
   recipeId: string;
@@ -29,7 +30,7 @@ const SavedButton = ({ recipeId, initialSavedState }: Props) => {
         setIsSaved(true);
         toast({
           title: "Add this recipe to saved!",
-          description: "Friday, February 10, 2023 at 5:57 PM",
+          description: format(Date.now(), "MMMM do, yyyy"),
         });
       },
     }
@@ -41,7 +42,7 @@ const SavedButton = ({ recipeId, initialSavedState }: Props) => {
         setIsSaved(false);
         toast({
           title: "Remove this recipe to saved!",
-          description: "Friday, February 10, 2023 at 5:57 PM",
+          description: format(Date.now(), "MMMM do, yyyy"),
         });
       },
     }
@@ -73,7 +74,7 @@ const SavedButton = ({ recipeId, initialSavedState }: Props) => {
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{isSaved ? "Remove from saved recipe" : "Saved recipe"}</p>
+          <p>Saved recipe</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

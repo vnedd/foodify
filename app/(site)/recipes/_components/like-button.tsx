@@ -6,6 +6,10 @@ import { AiFillLike } from "react-icons/ai";
 import { useAction } from "next-safe-action/hooks";
 import { likeRecipeAction, unlikeRecipeAction } from "@/app/_actions/recipes";
 import { cn } from "@/lib/utils";
+import { useSession } from "next-auth/react";
+import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { useRouter } from "next/navigation";
 
 interface Props {
   recipeId: string;
@@ -21,31 +25,48 @@ const LikeButton = ({
   const [isLiked, setIsLiked] = useState<boolean>(initialLikeState);
   const [likeCount, setLikeCount] = useState<number>(initialLikeCount || 0);
 
+  const { data: session } = useSession();
+  const { toast } = useToast();
+  const router = useRouter();
   const { execute: likeExecute, isExecuting: likeExecuting } = useAction(
     likeRecipeAction,
     {
-      onSuccess: () => {
-        setIsLiked(true);
-        setLikeCount((prev) => prev + 1);
+      onError: () => {
+        setIsLiked(false);
       },
     }
   );
   const { execute: unlikeExecute, isExecuting: unLikeExecuting } = useAction(
     unlikeRecipeAction,
     {
-      onSuccess: () => {
-        setIsLiked(false);
-        setLikeCount((prev) => prev - 1);
+      onError: () => {
+        setIsLiked(true);
       },
     }
   );
 
   const handleLike = () => {
+    if (!session?.user) {
+      toast({
+        variant: "destructive",
+        title: "You must login to do this actions",
+        action: (
+          <ToastAction altText="Login Now" onClick={() => router.push("/auth")}>
+            Login Now
+          </ToastAction>
+        ),
+      });
+      return;
+    }
     if (likeExecuting || unLikeExecuting) return;
     if (isLiked) {
       unlikeExecute({ id: recipeId });
+      setIsLiked(false);
+      setLikeCount((prev) => prev - 1);
     } else {
       likeExecute({ id: recipeId });
+      setIsLiked(true);
+      setLikeCount((prev) => prev + 1);
     }
   };
 

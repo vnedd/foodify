@@ -39,6 +39,29 @@ export const getRecipes = async () => {
   }
 };
 
+export const getTopRecipes = async () => {
+  try {
+    const recipes = await prisma.recipe.findMany({
+      orderBy: {
+        likeCount: "desc",
+      },
+      take: 10,
+      include: {
+        author: true,
+        category: true,
+        cuisine: true,
+        ingredients: true,
+        steps: true,
+        reviews: true,
+      },
+    });
+
+    return recipes;
+  } catch {
+    return [];
+  }
+};
+
 export const getInfinityRecipes = async (params: IRecipeQueryParams) => {
   try {
     const { offset, limit, title, categorySlug, cuisineId } = params;

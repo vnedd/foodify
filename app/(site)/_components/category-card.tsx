@@ -11,8 +11,8 @@ const CategoryCard = ({ category }: Props) => {
   return (
     <Link href={`/recipes?category=${category.slug}`}>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ y: 20 }}
+        whileInView={{ y: 0 }}
         viewport={{ amount: 0.8, once: true }}
         className="aspect-5/6 relative cursor-pointer group overflow-hidden rounded-lg w-full h-full"
       >
